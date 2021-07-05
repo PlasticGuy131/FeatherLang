@@ -56,7 +56,7 @@ namespace Parser
 
 	std::vector<SyntaxNode*> JoinBrackets(std::vector<SyntaxNode*> nodes, int start, int end);
 
-	std::vector<SyntaxNode*> JoinKeywords(std::vector<SyntaxNode*> nodes, std::string keyword, int start, int end);
+	std::vector<SyntaxNode*> JoinKeywords(std::vector<SyntaxNode*> nodes, int start, int end);
 
 	std::vector<SyntaxNode*> JoinAll(std::vector<SyntaxNode*> nodes, int start, int end);
 

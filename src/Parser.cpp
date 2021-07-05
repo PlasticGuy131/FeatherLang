@@ -174,15 +174,15 @@ std::vector<Parser::SyntaxNode*> Parser::JoinBrackets(std::vector<Parser::Syntax
 	return nodes;
 }
 
-std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::SyntaxNode*> nodes, std::string keyword, int start, int end)
+std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::SyntaxNode*> nodes, int start, int end)
 {
     for (size_t i = start; i < nodes.size() - end; i++)
 	{
-		if (nodes[i]->getData().getType() == Lexer::KEYWORD && nodes[i]->getData().getDataStr() == keyword)
+		if (nodes[i]->getData().getType() == Lexer::KEYWORD && nodes[i]->getData().getDataStr() == "print")
 		{
 			if (i == nodes.size()-1)
 			{
-				Error::ParsingError(Lexer::Token(), Lexer::Token::Keywords.find(keyword)->second[0]);
+				Error::ParsingError(Lexer::Token(), Lexer::Token::Keywords.find("print")->second[0]);
 			}
 			else
 			{
@@ -191,7 +191,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::Syntax
 					if (nodes[i + 1]->getData().getType() != Lexer::OPENBRACKET) Error::ParsingError(nodes[i + 1]->getData().getType(), Lexer::OPENBRACKET);
 					else
 					{
-						auto it = Lexer::Token::Keywords.find(keyword);
+						auto it = Lexer::Token::Keywords.find("print");
 						for (size_t n = 0; n < it->second.size(); n++)
 						{
 							if (nodes[i + 2 + n]->getData().getType() != it->second[n] && it->second[n] != Lexer::ANY)
@@ -231,6 +231,30 @@ std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::Syntax
 				}
 			}
 		}
+		else if (nodes[i]->getData().getType() == Lexer::KEYWORD && nodes[i]->getData().getDataStr() == "let")
+		{
+			if (i == nodes.size()-1)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::Token::Keywords.find("let")->second[0]);
+			}
+			else
+			{
+				if (i != nodes.size())
+				{
+					if (nodes[i + 1]->getData().getType() != Lexer::TYPE) Error::ParsingError(nodes[i + 1]->getData().getType(), Lexer::TYPE);
+					else
+					{
+						auto it = Lexer::Token::Keywords.find("print");
+						nodes[i]->addChild(nodes[i + 1]);
+						nodes[i + 1]->setParent(nodes[i]);
+					}
+				}
+				else
+				{
+					Error::ParsingError(Lexer::Token(), Lexer::OPENBRACKET);
+				}
+			}
+		}
 	}
 
 	return nodes;
@@ -253,7 +277,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinAll(std::vector<Parser::SyntaxNode*
 		nodes = JoinNodesArithmetic(nodes, Lexer::SUB, start, end);
 	}
 
-	nodes = JoinKeywords(nodes, "print", start, end);
+	nodes = JoinKeywords(nodes, start, end);
 
 	return nodes;
 }

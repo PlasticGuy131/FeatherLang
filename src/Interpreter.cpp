@@ -10,6 +10,7 @@ void Interpreter::InterpretAll(std::vector<std::string> programLines)
 	{
 		Lexer::TokenList tokens = Lexer::MakeTokens(programLines[i]);
 		Parser::SyntaxNode node = Parser::Parse(tokens);
+        std::cout << node.ToString() << std::endl;
 		Interpreter::Interpret(node).ToString();
 	}
 }

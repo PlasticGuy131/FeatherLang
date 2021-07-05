@@ -11,6 +11,10 @@ void Lexer::Setup()
 	std::vector<TokenType> data = std::vector<TokenType>();
 	data.push_back(ANY);
 	Token::Keywords.emplace("print", data);
+	data.clear();
+	data.push_back(TYPE);
+	Token::Keywords.emplace("let", data);
+	data.clear();
 }
 
 std::multimap<std::string, std::vector<Lexer::TokenType>> Lexer::Token::Keywords = std::multimap<std::string, std::vector<Lexer::TokenType>>();
