@@ -50,4 +50,6 @@ namespace Interpreter
     ReturnType InterpretCommandPrint(Parser::SyntaxNode print);
 
     ReturnType InterpretString(Parser::SyntaxNode string);
+
+    void InterpretAll(std::vector<std::string> programLines);
 }

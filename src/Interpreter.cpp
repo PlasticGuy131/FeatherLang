@@ -4,6 +4,16 @@
 
 #include "Interpreter.h"
 
+void Interpreter::InterpretAll(std::vector<std::string> programLines)
+{
+    for (size_t i = 0; i < programLines.size(); i++)
+	{
+		Lexer::TokenList tokens = Lexer::MakeTokens(programLines[i]);
+		Parser::SyntaxNode node = Parser::Parse(tokens);
+		Interpreter::Interpret(node).ToString();
+	}
+}
+
 Interpreter::ReturnType Interpreter::InterpretCommandPrint(Parser::SyntaxNode print)
 {
     ReturnType val = Interpret(*print.getChild(0));

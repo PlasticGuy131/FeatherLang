@@ -1,8 +1,10 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cstring>
 #include <streambuf>
 #include <vector>
+#include <algorithm>
 
 #include "Lexer.h"
 #include "Error.h"
@@ -45,24 +47,42 @@ int main(int argc, char** argv)
 
 	if(argc == 1)
 	{
-		std::cout << "NO ARGUMENTS SPECIFIED, PLEASE USE:\nrun [file name] - to run a file\ngithub - to get the link to the github" << std::endl;
+		std::cout << "NO ARGUMENTS SPECIFIED, PLEASE USE:\nhelp - for help" << std::endl;
 		exit(1);
 	}
 
-	std::string programFile = ReadFile("test.fth");
-	programFile += "\n";
-
-	std::vector<std::string> programLines = Split(programFile, "\n");
-
-	for (size_t i = 0; i < programLines.size(); i++)
+	if(std::strcmp(argv[1], "run") == 0)
 	{
-		Lexer::TokenList tokens = Lexer::MakeTokens(programLines[i]);
-		Parser::SyntaxNode node = Parser::Parse(tokens);
-        std::cout << node.ToString() << std::endl;
-		Interpreter::Interpret(node).ToString();
-	}
-	std::cout << std::endl;
+		std::cout << argv[1] << std::endl;
+		if(argc == 2)
+		{
+			std::cout << "NO [file name] GIVEN, PLEASE USE:\nrun [file name]" << std::endl;
+			exit(1);
+		}
+		else
+		{				
+			std::string programFile = ReadFile(argv[2]);
+			programFile += "\n";
 
-	std::string end;
-	std::cin >> end;
+			std::vector<std::string> programLines = Split(programFile, "\n");
+			
+			Interpreter::InterpretAll(programLines);
+			exit(1);
+		}
+	}
+	else if (std::strcmp(argv[1], "git") == 0)
+	{
+		std::cout << "GITHUB ADDRESS: https://github.com/PlasticGuy131/FeatherLang" << std::endl;
+		exit(1);
+	}
+	else if (std::strcmp(argv[1], "help") == 0)
+	{
+		std::cout << "ALL ARGUEMENTS:\nrun [file name] - to run a file\ngit - to get the link to the github\nhelp - for help" << std::endl;
+		exit(1);
+	}
+	else
+	{
+		std::cout << "UNRECOGNISED ARGUMENT " << argv[1] << " PLEASE USE:\nrun [file name] - to run a file\ngit - to get the link to the github\nhelp - for help" << std::endl;
+		exit(1);
+	}
 }

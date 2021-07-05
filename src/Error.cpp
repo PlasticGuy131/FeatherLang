@@ -17,7 +17,7 @@ void Error::UnexpectedCharError(char unexpectedChar, int pos)
 
 void Error::EmptyFileError()
 {
-	std::string out = "EmptyFileError: File is empty!";
+	std::string out = "EmptyFileError: File is empty or file does not exist!";
 	std::cout << out << std::endl;
 	exit(EXIT_FAILURE);
 }
