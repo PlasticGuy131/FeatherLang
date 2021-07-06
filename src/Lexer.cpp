@@ -69,6 +69,8 @@ std::string Lexer::TokenTypeToString(TokenType t)
 		return "POW";
 	case TYPE:
 		return "TYPE";
+	case ASSIGN:
+		return "ASSIGN";
 	default:
 		return "";
 	}
@@ -237,7 +239,15 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 		}
 		else if (program[pointer] == '=')
 		{
-			tokens.add(Token(EQUAL));
+			if(program[pointer+1] == '=')
+			{
+				tokens.add(Token(EQUAL));
+				pointer++;
+			}
+			else
+			{
+				tokens.add(Token(ASSIGN));
+			}
 		}
 		else if (program[pointer] == '(')
 		{

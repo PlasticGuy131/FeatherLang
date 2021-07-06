@@ -15,6 +15,14 @@ void Error::UnexpectedCharError(char unexpectedChar, int pos)
 	exit(EXIT_FAILURE);
 }
 
+void Error::UnexpectedIdentifier(std::string identifier)
+{
+	std::string out = "UnexpectedIdentifierError: Unexpected Identifer: ";
+	out += identifier;
+	std::cout << out << std::endl;
+	exit(EXIT_FAILURE);
+}
+
 void Error::EmptyFileError()
 {
 	std::string out = "EmptyFileError: File is empty or file does not exist!";

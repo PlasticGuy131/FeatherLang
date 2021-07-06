@@ -121,6 +121,53 @@ std::vector<Parser::SyntaxNode*> Parser::JoinNodesArithmetic(std::vector<Parser:
 	return nodes;
 }
 
+std::vector<Parser::SyntaxNode*> Parser::JoinAssign(std::vector<Parser::SyntaxNode*> nodes, int start, int end)
+{
+	for (size_t i = start; i < nodes.size() - end; i++)
+	{
+		if (nodes[i]->getData().getType() == Lexer::ASSIGN)
+		{
+			if (i == 0)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::IDENTIFIER);
+			}
+			else if(nodes[i-1]->getData().getType() != Lexer::IDENTIFIER)
+			{
+				Error::ParsingError(nodes[i - 1]->getData(), Lexer::IDENTIFIER);
+			}
+			else
+			{
+
+				nodes[i]->addChild(nodes[i-1]);
+
+				nodes[i-1]->setParent(nodes[i]);
+			}
+
+			if (i == nodes.size()-1)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
+			}
+			else if (!nodes[i+1]->isNumber())
+			{
+				Error::ParsingError(nodes[i+1]->getData(), Lexer::NUMBER);
+			}
+			else
+			{
+				Parser::SyntaxNode* node = nodes[i+1];
+				while (node->hasParent())
+				{
+					node = node->getParent();
+				}
+				nodes[i]->addChild(node);
+
+				node->setParent(nodes[i]);
+			}
+		}
+	}
+
+	return nodes;
+}
+
 std::vector<Parser::SyntaxNode*> Parser::JoinBrackets(std::vector<Parser::SyntaxNode*> nodes, int start, int end)
 {
 	for (size_t i = start; i < nodes.size()-end; i++)
@@ -260,6 +307,31 @@ std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::Syntax
 	return nodes;
 }
 
+std::vector<Parser::SyntaxNode*> Parser::JoinTypes(std::vector<Parser::SyntaxNode*> nodes, int start, int end)
+{
+	for (size_t i = start; i < nodes.size() - end; i++)
+	{
+		if (nodes[i]->getData().getType() == Lexer::TYPE)
+		{
+			if (i == nodes.size()-1)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::IDENTIFIER);
+			}
+			else if (nodes[i+1]->getData().getType() != Lexer::IDENTIFIER)
+			{
+				Error::ParsingError(nodes[i+1]->getData(), Lexer::NUMBER);
+			}
+			else
+			{
+				nodes[i]->addChild(nodes[i+1]);
+				nodes[i+1]->setParent(nodes[i]);
+			}
+		}
+	}
+
+	return nodes;
+}
+
 std::vector<Parser::SyntaxNode*> Parser::JoinAll(std::vector<Parser::SyntaxNode*> nodes, int start, int end)
 {
 	nodes = JoinBrackets(nodes, start, end);
@@ -276,6 +348,10 @@ std::vector<Parser::SyntaxNode*> Parser::JoinAll(std::vector<Parser::SyntaxNode*
 
 		nodes = JoinNodesArithmetic(nodes, Lexer::SUB, start, end);
 	}
+
+	nodes = JoinTypes(nodes, start, end);
+
+	nodes = JoinAssign(nodes, start, end);
 
 	nodes = JoinKeywords(nodes, start, end);
 

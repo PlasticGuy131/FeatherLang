@@ -11,4 +11,6 @@ namespace Error
 	void EOFError(char expectedChar);
 
 	void ParsingError(Lexer::Token token, Lexer::TokenType expectedType);
+
+	void UnexpectedIdentifier(std::string name);
 }

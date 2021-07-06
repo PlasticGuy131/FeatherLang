@@ -58,6 +58,10 @@ namespace Parser
 
 	std::vector<SyntaxNode*> JoinKeywords(std::vector<SyntaxNode*> nodes, int start, int end);
 
+	std::vector<SyntaxNode*> JoinTypes(std::vector<SyntaxNode*> nodes, int start, int end);
+
+	std::vector<SyntaxNode*> JoinAssign(std::vector<SyntaxNode*> nodes, int start, int end);
+
 	std::vector<SyntaxNode*> JoinAll(std::vector<SyntaxNode*> nodes, int start, int end);
 
 	SyntaxNode CalculateRoot(std::vector<SyntaxNode*> nodes);

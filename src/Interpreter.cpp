@@ -1,7 +1,9 @@
 #include <math.h>
 #include <iostream>
 #include <string>
+#include <vector>
 
+#include "Error.h"
 #include "Interpreter.h"
 
 void Interpreter::InterpretAll(std::vector<std::string> programLines)
@@ -13,6 +15,40 @@ void Interpreter::InterpretAll(std::vector<std::string> programLines)
         std::cout << node.ToString() << std::endl;
 		Interpreter::Interpret(node).ToString();
 	}
+}
+
+std::string Interpreter::Variable::ToString()
+{
+    std::string out = "";
+    if(type == INT) out += "int";
+    else if (type == FLOAT) out += "float";
+    out += " ";
+    out += name;
+    out += " = ";
+    if(type == INT) out += std::to_string(data.i);
+    else if (type == FLOAT) out += std::to_string(data.f);
+    return out;
+}
+
+Interpreter::ReturnType Interpreter::InterpretIdentifier(Parser::SyntaxNode identifier)
+{
+    if(identifier.getParent() == nullptr)
+    {
+        return ReturnType();
+    }
+    else
+    {
+        bool found;
+        for(size_t i = 0; i < variables.size(); i++)
+        {
+            if(variables[i].getName() == identifier.getData().getDataStr())
+            {
+                found = true;
+                return ReturnType(variables[i].getType(), variables[i].getData().i);
+            }
+        }
+        if(!found) Error::UnexpectedIdentifier(identifier.getData().getDataStr());
+    }
 }
 
 Interpreter::ReturnType Interpreter::InterpretCommandPrint(Parser::SyntaxNode print)
@@ -27,9 +63,29 @@ Interpreter::ReturnType Interpreter::InterpretCommandPrint(Parser::SyntaxNode pr
         std::cout << val.getData().f << std::endl;
     }
     else if(val.getType() == STRING)
-    {
-        std::cout << std::string(val.getData().s) << std::endl;
+    {  
+        std::string out = std::string(val.getData().s);
+        std::cout << out << std::endl;
     }
+	return ReturnType();
+}
+
+Interpreter::ReturnType Interpreter::InterpretCommandLet(Parser::SyntaxNode let)
+{
+    returnT type;
+    Data d = Data();
+    if(let.getChild(0)->getData().getDataStr() == "int") 
+    {
+        type = INT;
+        d.i = 0;
+    }
+    else if(let.getChild(0)->getData().getDataStr() == "float")
+    {
+        type = FLOAT;
+        d.f = 0;
+    }
+    
+    variables.push_back(Variable(let.getChild(0)->getChild(0)->getData().getDataStr(), type, d));
 	return ReturnType();
 }
 
@@ -47,11 +103,29 @@ Interpreter::ReturnType Interpreter::InterpretString(Parser::SyntaxNode string)
     return ReturnType(STRING, string.getData().getDataStr());
 }
 
+Interpreter::ReturnType Interpreter::InterpretAssign(Parser::SyntaxNode assign)
+{
+    bool found;
+    for(size_t i = 0; i < variables.size(); i++)
+    {
+        if(variables[i].getName() == assign.getChild(0)->getData().getDataStr())
+        {
+            found = true;
+            variables[i].setData(Interpret(*assign.getChild(1)).getData().i);
+        }
+    }
+    if(!found) Error::UnexpectedIdentifier(assign.getChild(0)->getData().getDataStr());
+    return ReturnType();    
+}
+
 Interpreter::ReturnType Interpreter::Interpret(Parser::SyntaxNode root)
 {   
     if(root.isNumber()) return Interpreter::InterpretNumOperator(root);
     else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "print") return InterpretCommandPrint(root);
     else if (root.getData().getType() == Lexer::STRING) return InterpretString(root);
+    else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "let") return InterpretCommandLet(root);
+    else if (root.getData().getType() == Lexer::IDENTIFIER) return InterpretIdentifier(root);
+    else if (root.getData().getType() == Lexer::ASSIGN) return InterpretAssign(root);
     else return ReturnType();    
 }
 
