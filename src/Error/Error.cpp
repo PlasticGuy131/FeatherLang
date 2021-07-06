@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
 
-#include "Lexer.h"
+#include "../Lexer/Lexer.h"
 #include "Error.h"
-#include "Interpreter.h"
+#include "../Interpreter/Interpreter.h"
 
 void Error::UnexpectedCharError(char unexpectedChar, int pos)
 {

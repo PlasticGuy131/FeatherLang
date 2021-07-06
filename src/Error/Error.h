@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Lexer.h"
-#include "Interpreter.h"
+#include "../Lexer/Lexer.h"
+#include "../Interpreter/Interpreter.h"
 
 namespace Error
 {

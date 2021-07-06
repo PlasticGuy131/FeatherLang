@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "Parser.h"
-#include "Error.h"
-#include "Lexer.h"
+#include "../Error/Error.h"
+#include "../Lexer/Lexer.h"
 
 std::string Parser::SyntaxNode::ToString()
 {

@@ -2,7 +2,7 @@
 
 #include<string>
 
-#include "Parser.h"
+#include "../Parser/Parser.h"
 
 namespace Interpreter
 {

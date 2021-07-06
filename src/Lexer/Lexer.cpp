@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "Lexer.h"
-#include "Error.h"
+#include "../Error/Error.h"
 
 
 void Lexer::Setup()

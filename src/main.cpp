@@ -6,10 +6,10 @@
 #include <vector>
 #include <algorithm>
 
-#include "Lexer.h"
-#include "Error.h"
-#include "Parser.h"
-#include "Interpreter.h"
+#include "Lexer/Lexer.h"
+#include "Error/Error.h"
+#include "Parser/Parser.h"
+#include "Interpreter/Interpreter.h"
 
 std::string ReadFile(std::string fileName)
 {

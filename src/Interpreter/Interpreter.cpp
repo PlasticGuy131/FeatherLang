@@ -4,7 +4,7 @@
 #include <string.h>
 #include <vector>
 
-#include "Error.h"
+#include "../Error/Error.h"
 #include "Interpreter.h"
 
 void Interpreter::InterpretAll(std::vector<std::string> programLines)

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "Lexer.h"
+#include "../Lexer/Lexer.h"
 
 namespace Parser
 {
