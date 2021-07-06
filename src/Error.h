@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lexer.h"
+#include "Interpreter.h"
 
 namespace Error
 {
@@ -12,5 +13,7 @@ namespace Error
 
 	void ParsingError(Lexer::Token token, Lexer::TokenType expectedType);
 
-	void UnexpectedIdentifier(std::string name);
+	void UnexpectedIdentifierError(std::string name);
+
+	void TypeError(Interpreter::returnT shouldBe, Interpreter::returnT type);
 }

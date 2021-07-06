@@ -80,7 +80,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinNodesArithmetic(std::vector<Parser:
 			{
 				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
 			}
-			else if(!nodes[i-1]->isNumber())
+			else if(!nodes[i-1]->isNumber() && nodes[i - 1]->getData().getType() != Lexer::IDENTIFIER && !((op == Lexer::ADD && nodes[i-1]->getData().getType() == Lexer::STRING) || (op == Lexer::MULT && nodes[i-1]->getData().getType() == Lexer::INT)) )
 			{
 				Error::ParsingError(nodes[i - 1]->getData(), Lexer::NUMBER);
 			}
@@ -100,7 +100,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinNodesArithmetic(std::vector<Parser:
 			{
 				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
 			}
-			else if (!nodes[i+1]->isNumber())
+			else if (!nodes[i+1]->isNumber() && !(op == Lexer::ADD && nodes[i+1]->getData().getType() == Lexer::STRING))
 			{
 				Error::ParsingError(nodes[i+1]->getData(), Lexer::NUMBER);
 			}
@@ -145,11 +145,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinAssign(std::vector<Parser::SyntaxNo
 
 			if (i == nodes.size()-1)
 			{
-				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
-			}
-			else if (!nodes[i+1]->isNumber())
-			{
-				Error::ParsingError(nodes[i+1]->getData(), Lexer::NUMBER);
+				Error::ParsingError(Lexer::Token(), Lexer::ANY);
 			}
 			else
 			{

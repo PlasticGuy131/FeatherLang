@@ -3,6 +3,7 @@
 
 #include "Lexer.h"
 #include "Error.h"
+#include "Interpreter.h"
 
 void Error::UnexpectedCharError(char unexpectedChar, int pos)
 {
@@ -15,7 +16,7 @@ void Error::UnexpectedCharError(char unexpectedChar, int pos)
 	exit(EXIT_FAILURE);
 }
 
-void Error::UnexpectedIdentifier(std::string identifier)
+void Error::UnexpectedIdentifierError(std::string identifier)
 {
 	std::string out = "UnexpectedIdentifierError: Unexpected Identifer: ";
 	out += identifier;
@@ -45,6 +46,21 @@ void Error::ParsingError(Lexer::Token token, Lexer::TokenType expectedType)
 	out += token.ToString();
 	out += ", expected type: ";
 	out += Lexer::TokenTypeToString(expectedType);
+	out += "!";
+	std::cout << out << std::endl;
+	exit(EXIT_FAILURE);
+}
+
+void Error::TypeError(Interpreter::returnT shouldBe, Interpreter::returnT type)
+{
+	std::string out = "TypeError: Cannot change type: ";
+	if(type == Interpreter::INT) out += "int";
+	else if(type == Interpreter::FLOAT) out += "float";
+	else if(type == Interpreter::STRING) out += "string";
+	out += " to type: ";
+	if(shouldBe == Interpreter::INT) out += "int";
+	else if(shouldBe == Interpreter::FLOAT) out += "float";
+	else if(shouldBe == Interpreter::STRING) out += "string";
 	out += "!";
 	std::cout << out << std::endl;
 	exit(EXIT_FAILURE);

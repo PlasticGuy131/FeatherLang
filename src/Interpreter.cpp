@@ -1,6 +1,7 @@
 #include <math.h>
 #include <iostream>
 #include <string>
+#include <string.h>
 #include <vector>
 
 #include "Error.h"
@@ -10,9 +11,9 @@ void Interpreter::InterpretAll(std::vector<std::string> programLines)
 {
     for (size_t i = 0; i < programLines.size(); i++)
 	{
+        if(programLines[i].length() < 1) continue;
 		Lexer::TokenList tokens = Lexer::MakeTokens(programLines[i]);
 		Parser::SyntaxNode node = Parser::Parse(tokens);
-        std::cout << node.ToString() << std::endl;
 		Interpreter::Interpret(node).ToString();
 	}
 }
@@ -22,11 +23,13 @@ std::string Interpreter::Variable::ToString()
     std::string out = "";
     if(type == INT) out += "int";
     else if (type == FLOAT) out += "float";
+    else if (type == STRING) out += "string";
     out += " ";
     out += name;
     out += " = ";
     if(type == INT) out += std::to_string(data.i);
     else if (type == FLOAT) out += std::to_string(data.f);
+    else if (type == STRING) out += data.s;
     return out;
 }
 
@@ -44,10 +47,12 @@ Interpreter::ReturnType Interpreter::InterpretIdentifier(Parser::SyntaxNode iden
             if(variables[i].getName() == identifier.getData().getDataStr())
             {
                 found = true;
-                return ReturnType(variables[i].getType(), variables[i].getData().i);
+                if(variables[i].getType() == INT) return ReturnType(variables[i].getType(), variables[i].getData().i);
+                else if(variables[i].getType() == FLOAT) return ReturnType(variables[i].getType(), variables[i].getData().f);
+                else if(variables[i].getType() == STRING) return ReturnType(variables[i].getType(), variables[i].getData().s);
             }
         }
-        if(!found) Error::UnexpectedIdentifier(identifier.getData().getDataStr());
+        if(!found) Error::UnexpectedIdentifierError(identifier.getData().getDataStr());
     }
 }
 
@@ -84,6 +89,10 @@ Interpreter::ReturnType Interpreter::InterpretCommandLet(Parser::SyntaxNode let)
         type = FLOAT;
         d.f = 0;
     }
+     else if(let.getChild(0)->getData().getDataStr() == "string")
+    {
+        type = STRING;
+    }
     
     variables.push_back(Variable(let.getChild(0)->getChild(0)->getData().getDataStr(), type, d));
 	return ReturnType();
@@ -111,10 +120,26 @@ Interpreter::ReturnType Interpreter::InterpretAssign(Parser::SyntaxNode assign)
         if(variables[i].getName() == assign.getChild(0)->getData().getDataStr())
         {
             found = true;
-            variables[i].setData(Interpret(*assign.getChild(1)).getData().i);
+            ReturnType set = Interpret(*assign.getChild(1));
+            if(variables[i].getType() == INT) 
+            {
+                if(set.getType() == INT) variables[i].setData(set.getData().i);
+                else Error::TypeError(INT, set.getType());
+            }
+            else if(variables[i].getType() == FLOAT)
+            {
+                if(set.getType() == FLOAT) variables[i].setData(set.getData().f);
+                else if(set.getType() == INT) variables[i].setData((float) set.getData().i);
+                else Error::TypeError(FLOAT, set.getType());
+            }
+            else if(variables[i].getType() == STRING)
+            {
+                if(set.getType() == STRING) variables[i].setData(set.getData().s);
+                else Error::TypeError(STRING, set.getType());
+            }
         }
     }
-    if(!found) Error::UnexpectedIdentifier(assign.getChild(0)->getData().getDataStr());
+    if(!found) Error::UnexpectedIdentifierError(assign.getChild(0)->getData().getDataStr());
     return ReturnType();    
 }
 
@@ -157,53 +182,81 @@ Interpreter::ReturnType Interpreter::InterpretNumOperator(Parser::SyntaxNode op)
         ReturnType rightR = Interpret(*op.getChild(1));
 		float left;
 		float right;
-        if(leftR.getType() == INT)
-        {
-            left = leftR.getData().i;
-        }
-        else if (leftR.getType() == FLOAT)
-        {
-            left = leftR.getData().f;
-        }
 
-        if(rightR.getType() == INT)
+        if(leftR.getType() == STRING || leftR.getType() == STRING)
         {
-            right = rightR.getData().i;
-        }
-        else if (rightR.getType() == FLOAT)
-        {
-            right = rightR.getData().f;
-        }
-
-        float val = 0;
-		if (op.getData().getType() == Lexer::ADD)
-		{
-			val = left + right;
-		}
-		else if (op.getData().getType() == Lexer::SUB)
-		{
-			val = left - right;
-		}
-		else if (op.getData().getType() == Lexer::DIV)
-		{
-			val = left / right;
-		}
-		else if (op.getData().getType() == Lexer::MULT)
-		{
-			val = left * right;
-		}
-		else if (op.getData().getType() == Lexer::POW)
-		{
-			val = pow(left, right);
-		}
-
-        if(leftR.getType() == INT && rightR.getType() == INT)
-        {
-            return ReturnType(INT, static_cast<int>(val));
+           if(leftR.getType() == STRING && op.getData().getType() == Lexer::ADD && rightR.getType() == STRING)
+           {
+               std::string l = "";
+               std::string r = "";
+               l = leftR.getData().s;
+               r = rightR.getData().s;
+               return ReturnType(STRING, l + r);
+           }
+           else if (leftR.getType() == STRING && op.getData().getType() == Lexer::MULT && rightR.getType() == INT)
+           {
+               std::string l = "";
+               int r = rightR.getData().i;
+               l = leftR.getData().s;
+               std::string out = "";
+               for(int i = 0; i < r; i++)
+               {
+                   out += l;
+               }
+               return ReturnType(STRING, out);
+           }
+           else Error::TypeError(STRING, INT);
         }
         else
-        {
-            return ReturnType(FLOAT, val);
-        }   
+        {       
+            if(leftR.getType() == INT)
+            {
+                left = leftR.getData().i;
+            }
+            else if (leftR.getType() == FLOAT)
+            {
+                left = leftR.getData().f;
+            }
+
+            if(rightR.getType() == INT)
+            {
+                right = rightR.getData().i;
+            }
+            else if (rightR.getType() == FLOAT)
+            {
+                right = rightR.getData().f;
+            }
+
+            float val = 0;
+            if (op.getData().getType() == Lexer::ADD)
+            {
+                val = left + right;
+            }
+            else if (op.getData().getType() == Lexer::SUB)
+            {
+                val = left - right;
+            }
+            else if (op.getData().getType() == Lexer::DIV)
+            {
+                val = left / right;
+            }
+            else if (op.getData().getType() == Lexer::MULT)
+            {
+                val = left * right;
+            }
+            else if (op.getData().getType() == Lexer::POW)
+            {
+                val = pow(left, right);
+            }
+
+            if(leftR.getType() == INT && rightR.getType() == INT)
+            {
+                return ReturnType(INT, static_cast<int>(val));
+            }
+            else
+            {
+                return ReturnType(FLOAT, val);
+            } 
+        } 
 	}
 }

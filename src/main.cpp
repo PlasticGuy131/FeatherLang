@@ -53,7 +53,6 @@ int main(int argc, char** argv)
 
 	if(std::strcmp(argv[1], "run") == 0)
 	{
-		std::cout << argv[1] << std::endl;
 		if(argc == 2)
 		{
 			std::cout << "NO [file name] GIVEN, PLEASE USE:\nrun [file name]" << std::endl;

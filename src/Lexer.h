@@ -14,7 +14,7 @@ namespace Lexer
 
 	union Data { int i; float f; char s[256]; };
 
-	static std::string types[2] {"int", "float"};
+	static std::string types[3] {"int", "float", "string"};
 
 	class Token
 	{
