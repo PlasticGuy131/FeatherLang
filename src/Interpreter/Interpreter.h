@@ -104,6 +104,8 @@ namespace Interpreter
 
     ReturnType InterpretCommandLet(Parser::SyntaxNode let);
 
+    ReturnType InterpretCommandInput(Parser::SyntaxNode input);
+
     ReturnType InterpretString(Parser::SyntaxNode string);
 
     ReturnType InterpretBool(Parser::SyntaxNode boolean);

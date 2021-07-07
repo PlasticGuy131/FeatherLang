@@ -80,7 +80,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinNodesArithmetic(std::vector<Parser:
 			{
 				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
 			}
-			else if(!nodes[i-1]->isNumber() && nodes[i - 1]->getData().getType() != Lexer::IDENTIFIER && !((op == Lexer::ADD && nodes[i-1]->getData().getType() == Lexer::STRING) || (op == Lexer::MULT && nodes[i-1]->getData().getType() == Lexer::INT)) )
+			else if(!nodes[i-1]->isNumber() && nodes[i - 1]->getData().getType() != Lexer::IDENTIFIER && !(op == Lexer::ADD && (nodes[i-1]->getData().getType() == Lexer::STRING || nodes[i+1]->getData().getType() == Lexer::IDENTIFIER)) && !(op == Lexer::MULT && (nodes[i-1]->getData().getType() == Lexer::STRING || nodes[i+1]->getData().getType() == Lexer::IDENTIFIER)))
 			{
 				Error::ParsingError(nodes[i - 1]->getData(), Lexer::NUMBER);
 			}
@@ -95,12 +95,12 @@ std::vector<Parser::SyntaxNode*> Parser::JoinNodesArithmetic(std::vector<Parser:
 
 				node->setParent(nodes[i]);
 			}
-
+			
 			if (i == nodes.size()-1)
 			{
 				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
 			}
-			else if (!nodes[i+1]->isNumber() && !(op == Lexer::ADD && nodes[i+1]->getData().getType() == Lexer::STRING))
+			else if (!nodes[i+1]->isNumber() && !(op == Lexer::ADD && (nodes[i+1]->getData().getType() == Lexer::STRING || nodes[i+1]->getData().getType() == Lexer::IDENTIFIER)) && nodes[i+1]->getData().getType() != Lexer::IDENTIFIER)
 			{
 				Error::ParsingError(nodes[i+1]->getData(), Lexer::NUMBER);
 			}
@@ -291,6 +291,59 @@ std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::Syntax
 							if (nodes[i + 2 + n]->getData().getType() != it->second[n] && it->second[n] != Lexer::ANY)
 							{
 								Error::ParsingError(nodes[i + 2 + n]->getData().getType(), it->second[n]);
+							}
+							else
+							{
+								Parser::SyntaxNode* node = nodes[i + 2 + n];
+								while (node->hasParent())
+								{
+									node = node->getParent();
+								}
+								node->setParent(nodes[i]);
+								nodes[i]->addChild(node);
+
+								nodes.erase(nodes.begin() + i + 1, nodes.begin() + i + 2);
+
+								int close = 0;
+								for (size_t j = i + 1; nodes.size() - end; j++)
+								{
+									if (*nodes[j] == Parser::SyntaxNode(Lexer::CLOSEBRACKET))
+									{
+										close = j;
+										break;
+									}
+								}
+
+								nodes.erase(nodes.begin() + close, nodes.begin() + close + 1);
+							}
+						}
+					}
+				}
+				else
+				{
+					Error::ParsingError(Lexer::Token(), Lexer::OPENBRACKET);
+				}
+			}
+		}
+		else if (nodes[i]->getData().getType() == Lexer::KEYWORD && nodes[i]->getData().getDataStr() == "input")
+		{
+			if (i == nodes.size()-1)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::Token::Keywords.find("input")->second[0]);
+			}
+			else
+			{
+				if (i != nodes.size())
+				{
+					if (nodes[i + 1]->getData().getType() != Lexer::OPENBRACKET) Error::ParsingError(nodes[i + 1]->getData().getType(), Lexer::OPENBRACKET);
+					else
+					{
+						auto it = Lexer::Token::Keywords.find("input");
+						for (size_t n = 0; n < it->second.size(); n++)
+						{
+							if (nodes[i + 2 + n]->getData().getType() != Lexer::STRING && nodes[i + 2 + n]->getData().getType() != Lexer::IDENTIFIER)
+							{
+								Error::ParsingError(nodes[i + 2 + n]->getData(), it->second[n]);
 							}
 							else
 							{

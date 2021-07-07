@@ -14,6 +14,7 @@ void Interpreter::InterpretAll(std::vector<std::string> programLines)
         if(programLines[i].length() < 1) continue;
 		Lexer::TokenList tokens = Lexer::MakeTokens(programLines[i]);
 		Parser::SyntaxNode node = Parser::Parse(tokens);
+        //std::cout << node.ToString() << std::endl;
 		Interpreter::Interpret(node).ToString();
 	}
 }
@@ -149,6 +150,17 @@ Interpreter::ReturnType Interpreter::InterpretCommandLet(Parser::SyntaxNode let)
 	return ReturnType();
 }
 
+Interpreter::ReturnType Interpreter::InterpretCommandInput(Parser::SyntaxNode input)
+{
+    std::string promt = std::string(Interpret(*input.getChild(0)).getData().s);
+    std::cout << promt << std::endl;
+
+    std::string val;
+    std::cin >> val;
+
+	return ReturnType(STRING, val);
+}
+
 Interpreter::ReturnType::ReturnType(returnT t, std::string d)
 {
     type = t;
@@ -220,6 +232,7 @@ Interpreter::ReturnType Interpreter::Interpret(Parser::SyntaxNode root)
     else if (root.getData().getType() == Lexer::ASSIGN) return InterpretAssign(root);
     else if (root.isComp()) return Interpreter::InterpretCompOperator(root);
     else if (root.getData().getType() == Lexer::BOOL) return InterpretBool(root);
+    else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "input") return InterpretCommandInput(root);
     else return ReturnType();    
 }
 
