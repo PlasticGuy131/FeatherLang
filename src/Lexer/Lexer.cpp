@@ -71,6 +71,12 @@ std::string Lexer::TokenTypeToString(TokenType t)
 		return "TYPE";
 	case ASSIGN:
 		return "ASSIGN";
+	case BOOL:
+		return "BOOL";
+	case DEFAULT:
+		return "DEFAULT";
+	case ANY:
+		return "ANY";
 	default:
 		return "";
 	}
@@ -102,6 +108,12 @@ std::string Lexer::Token::ToString()
 	{
 		out += ':';
 		out += data.s;
+	}
+	else if (type == BOOL)
+	{
+		out += ':';
+		if(data.b) out += "true";
+		else out += "false";
 	}
 	out += "]";
 	return out;
@@ -153,6 +165,11 @@ std::string Lexer::TokenList::ToString()
 bool Lexer::Token::isNumber()
 {
 	return (type == INT || type == FLOAT || type == ADD || type == MULT || type == SUB || type == DIV || type == POW);
+}
+
+bool Lexer::Token::isComp()
+{
+	return (type == EQUAL || type == GREATER || type == GREATERE || type == LESS || type == LESSE);
 }
 
 Lexer::TokenList Lexer::MakeTokens(std::string program)
@@ -218,7 +235,6 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 				}
 				pointer++;
 			}
-
 			tokens.add(Token(STRING, str));
 		}
 		else if (program[pointer] == '+')
@@ -269,6 +285,10 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 		{
 			tokens.add(Token(POW));
 		}
+		else if (program[pointer] == ':')
+		{
+			tokens.add(Token(DEFAULT));
+		}
 		else if (program[pointer] == '>')
 		{
 			if(program[pointer+1] == '=')
@@ -306,6 +326,8 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 			
 			if (Lexer::Token::Keywords.find(str) != Lexer::Token::Keywords.end()) tokens.add(Token(KEYWORD, str));
 			else if(std::count(std::begin(types), std::end(types), str)) tokens.add(Token(TYPE, str));
+			else if(str == "true") tokens.add(Token(BOOL, true));
+			else if(str == "false") tokens.add(Token(BOOL, false));
 			else tokens.add(Token(IDENTIFIER, str));
 			
 			pointer--;

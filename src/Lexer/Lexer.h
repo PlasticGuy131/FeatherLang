@@ -6,15 +6,15 @@
 
 namespace Lexer
 {
-	enum TokenType { INT, FLOAT, STRING, ADD, SUB, MULT, DIV, GREATER, LESS, GREATERE, LESSE, EQUAL, OPENBRACKET, CLOSEBRACKET, OPENBRACE, CLOSEBRACE, KEYWORD, IDENTIFIER, END, NUMBER, NULLTYPE, POW, ANY, TYPE, ASSIGN };
+	enum TokenType { INT, FLOAT, STRING, ADD, SUB, MULT, DIV, GREATER, LESS, GREATERE, LESSE, EQUAL, OPENBRACKET, CLOSEBRACKET, OPENBRACE, CLOSEBRACE, KEYWORD, IDENTIFIER, END, NUMBER, NULLTYPE, POW, ANY, TYPE, ASSIGN, BOOL, DEFAULT };
 
 	void Setup();
 
 	std::string TokenTypeToString(TokenType t);
 
-	union Data { int i; float f; char s[256]; };
+	union Data { int i; float f; char s[256]; bool b; };
 
-	static std::string types[3] {"int", "float", "string"};
+	static std::string types[4] {"int", "float", "string", "bool"};
 
 	class Token
 	{
@@ -30,6 +30,8 @@ namespace Lexer
 		Token(TokenType tType, int d) { type = tType; data.i = d; }
 
 		Token(TokenType tType, float d) { type = tType; data.f = d; }
+
+		Token(TokenType tType, bool b) { type = tType; data.b = b; }
 
 		Token(TokenType tType, std::string d);
 
@@ -50,9 +52,13 @@ namespace Lexer
 			}
 		}
 
+		bool getDataBool() {return data.b; }
+
 		std::string getDataStr() { return data.s; }
 
 		bool isNumber();
+
+		bool isComp();
 
 		bool operator==(const Token& rhs);
 

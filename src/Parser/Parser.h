@@ -38,6 +38,8 @@ namespace Parser
 
 		bool isNumber() { return data.isNumber(); }
 
+		bool isComp() { return data.isComp(); }
+
 		std::vector<SyntaxNode*> getChildren() { return children; }
 
 		bool operator==(const SyntaxNode& rhs);
@@ -53,6 +55,8 @@ namespace Parser
 	std::vector<SyntaxNode*> TokensToNode(Lexer::TokenList tokens);
 
 	std::vector<SyntaxNode*> JoinNodesArithmetic(std::vector<SyntaxNode*> nodes, Lexer::TokenType op, int start, int end);
+
+	std::vector<SyntaxNode*> JoinNodesCompair(std::vector<SyntaxNode*> nodes, Lexer::TokenType op, int start, int end);
 
 	std::vector<SyntaxNode*> JoinBrackets(std::vector<SyntaxNode*> nodes, int start, int end);
 

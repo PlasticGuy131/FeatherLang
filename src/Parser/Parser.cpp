@@ -121,6 +121,57 @@ std::vector<Parser::SyntaxNode*> Parser::JoinNodesArithmetic(std::vector<Parser:
 	return nodes;
 }
 
+std::vector<Parser::SyntaxNode*> Parser::JoinNodesCompair(std::vector<Parser::SyntaxNode*> nodes, Lexer::TokenType op, int start, int end)
+{
+	for (size_t i = start; i < nodes.size() - end; i++)
+	{
+		if (nodes[i]->getData().getType() == op && !nodes[i]->hasChildren())
+		{
+			if (i == 0)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
+			}
+			else if(!nodes[i-1]->isNumber() && nodes[i - 1]->getData().getType() != Lexer::IDENTIFIER)
+			{
+				Error::ParsingError(nodes[i - 1]->getData(), Lexer::NUMBER);
+			}
+			else
+			{
+				Parser::SyntaxNode* node = nodes[i - 1];
+				while (node->hasParent())
+				{
+					node = node->getParent();
+				}
+				nodes[i]->addChild(node);
+
+				node->setParent(nodes[i]);
+			}
+
+			if (i == nodes.size()-1)
+			{
+				Error::ParsingError(Lexer::Token(), Lexer::NUMBER);
+			}
+			else if (!nodes[i+1]->isNumber() && nodes[i+1]->getData().getType() != Lexer::IDENTIFIER)
+			{
+				Error::ParsingError(nodes[i+1]->getData(), Lexer::NUMBER);
+			}
+			else
+			{
+				Parser::SyntaxNode* node = nodes[i+1];
+				while (node->hasParent())
+				{
+					node = node->getParent();
+				}
+				nodes[i]->addChild(node);
+
+				node->setParent(nodes[i]);
+			}
+		}
+	}
+
+	return nodes;
+}
+
 std::vector<Parser::SyntaxNode*> Parser::JoinAssign(std::vector<Parser::SyntaxNode*> nodes, int start, int end)
 {
 	for (size_t i = start; i < nodes.size() - end; i++)
@@ -287,14 +338,40 @@ std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::Syntax
 					if (nodes[i + 1]->getData().getType() != Lexer::TYPE) Error::ParsingError(nodes[i + 1]->getData().getType(), Lexer::TYPE);
 					else
 					{
-						auto it = Lexer::Token::Keywords.find("print");
 						nodes[i]->addChild(nodes[i + 1]);
 						nodes[i + 1]->setParent(nodes[i]);
+					}
+
+					if(i+3 < nodes.size())
+					{
+						if(nodes[i+3]->getData().getType() != Lexer::DEFAULT) Error::ParsingError(nodes[i + 1]->getData().getType(), Lexer::DEFAULT);
+						else
+						{	
+							nodes[i+3]->setParent(nodes[i]);
+							nodes[i]->addChild(nodes[i+3]);
+
+							if(i+4 < nodes.size())
+							{
+								Parser::SyntaxNode* node = nodes[i + 4];
+								while (node->hasParent())
+								{
+									node = node->getParent();
+								}
+								node->setParent(nodes[i]);
+								nodes[i]->addChild(node);
+							}
+							else
+							{
+								Error::ParsingError(Lexer::NULLTYPE, Lexer::ANY);
+							}
+							
+						}
+						
 					}
 				}
 				else
 				{
-					Error::ParsingError(Lexer::Token(), Lexer::OPENBRACKET);
+					Error::ParsingError(Lexer::Token(), Lexer::TYPE);
 				}
 			}
 		}
@@ -345,6 +422,16 @@ std::vector<Parser::SyntaxNode*> Parser::JoinAll(std::vector<Parser::SyntaxNode*
 		nodes = JoinNodesArithmetic(nodes, Lexer::SUB, start, end);
 	}
 
+	nodes = JoinNodesCompair(nodes, Lexer::EQUAL, start, end);
+
+	nodes = JoinNodesCompair(nodes, Lexer::LESS, start, end);
+
+	nodes = JoinNodesCompair(nodes, Lexer::LESSE, start, end);
+
+	nodes = JoinNodesCompair(nodes, Lexer::GREATER, start, end);
+
+	nodes = JoinNodesCompair(nodes, Lexer::GREATERE, start, end);
+	
 	nodes = JoinTypes(nodes, start, end);
 
 	nodes = JoinAssign(nodes, start, end);

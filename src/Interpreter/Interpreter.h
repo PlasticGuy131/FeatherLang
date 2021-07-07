@@ -6,9 +6,9 @@
 
 namespace Interpreter
 {
-    union Data { int i; float f; char s[256]; };
+    union Data { int i; float f; char s[256]; bool b; };
 
-    enum returnT {INT, FLOAT, STRING, VOID};
+    enum returnT {INT, FLOAT, STRING, VOID, BOOL};
 
     class Variable
     {
@@ -35,8 +35,15 @@ namespace Interpreter
 
         void setData(float f) { data.f = f; }
 
+        void setData(bool b) { data.b = b; }
+
         void setData(std::string s) 
         {
+            for(size_t i = 0; i < 256; i++)
+            {
+                data.s[i] = '\0';
+            }
+
             for(size_t i = 0; i < s.length(); i++)
             {
                 data.s[i] = s[i];
@@ -66,6 +73,12 @@ namespace Interpreter
             type = t;
         }
 
+        ReturnType(returnT t, bool b)
+        {
+            data.b = b;
+            type = t;
+        }
+
         ReturnType(returnT t, float d)
         {
             data.f = d;
@@ -83,6 +96,8 @@ namespace Interpreter
 
 	ReturnType InterpretNumOperator(Parser::SyntaxNode op);
 
+    ReturnType InterpretCompOperator(Parser::SyntaxNode op);
+
 	ReturnType Interpret(Parser::SyntaxNode root);
 
     ReturnType InterpretCommandPrint(Parser::SyntaxNode print);
@@ -90,6 +105,8 @@ namespace Interpreter
     ReturnType InterpretCommandLet(Parser::SyntaxNode let);
 
     ReturnType InterpretString(Parser::SyntaxNode string);
+
+    ReturnType InterpretBool(Parser::SyntaxNode boolean);
 
     ReturnType InterpretIdentifier(Parser::SyntaxNode identifier);
 
