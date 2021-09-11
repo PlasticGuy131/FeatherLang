@@ -10,6 +10,7 @@
 #include "Error/Error.h"
 #include "Parser/Parser.h"
 #include "Interpreter/Interpreter.h"
+#include "Compiler/Compiler.h"
 
 std::string ReadFile(std::string fileName)
 {
@@ -66,6 +67,24 @@ int main(int argc, char** argv)
 			std::vector<std::string> programLines = Split(programFile, "\n");
 			
 			Interpreter::InterpretAll(programLines);
+			exit(1);
+		}
+	}
+	if(std::strcmp(argv[1], "compile") == 0)
+	{
+		if(argc == 2)
+		{
+			std::cout << "NO [file name] GIVEN, PLEASE USE:\ncompile [file name]" << std::endl;
+			exit(1);
+		}
+		else
+		{				
+			std::string programFile = ReadFile(argv[2]);
+			programFile += "\n";
+
+			std::vector<std::string> programLines = Split(programFile, "\n");
+			
+			Compiler::CompileAll(programLines);
 			exit(1);
 		}
 	}
