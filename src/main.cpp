@@ -84,7 +84,10 @@ int main(int argc, char** argv)
 
 			std::vector<std::string> programLines = Split(programFile, "\n");
 			
-			Compiler::CompileAll(programLines);
+			std::string programName = argv[2];
+			programName = programName.substr(0, programName.find("."));
+
+			Compiler::CompileAll(programLines, programName);
 			exit(1);
 		}
 	}
