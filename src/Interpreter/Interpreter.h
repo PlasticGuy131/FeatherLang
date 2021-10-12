@@ -100,7 +100,7 @@ namespace Interpreter
 
 	ReturnType Interpret(Parser::SyntaxNode root);
 
-    ReturnType InterpretCommandPrint(Parser::SyntaxNode print);
+    ReturnType InterpretCommandPrint(Parser::SyntaxNode print, bool newLine);
 
     ReturnType InterpretCommandLet(Parser::SyntaxNode let);
 

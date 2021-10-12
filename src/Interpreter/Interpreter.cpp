@@ -57,28 +57,29 @@ Interpreter::ReturnType Interpreter::InterpretIdentifier(Parser::SyntaxNode iden
     }
 }
 
-Interpreter::ReturnType Interpreter::InterpretCommandPrint(Parser::SyntaxNode print)
+Interpreter::ReturnType Interpreter::InterpretCommandPrint(Parser::SyntaxNode print, bool newLine)
 {
     ReturnType val = Interpret(*print.getChild(0));
     if(val.getType() == INT)
     {
-        std::cout << val.getData().i << std::endl;
+        std::cout << val.getData().i;
     }
     else if(val.getType() == FLOAT)
     {
-        std::cout << val.getData().f << std::endl;
+        std::cout << val.getData().f;
     }
     else if(val.getType() == STRING)
     {  
         std::string out = std::string(val.getData().s);
-        std::cout << out << std::endl;
+        std::cout << out;
     }
     else if(val.getType() == BOOL)
     {  
         std::string out = "false";
         if(val.getData().b) out = "true";
-        std::cout << out << std::endl;
+        std::cout << out;
     }
+    if (newLine) std::cout << std::endl;
 	return ReturnType();
 }
 
@@ -224,7 +225,8 @@ Interpreter::ReturnType Interpreter::InterpretAssign(Parser::SyntaxNode assign)
 Interpreter::ReturnType Interpreter::Interpret(Parser::SyntaxNode root)
 {   
     if (root.isNumber()) return Interpreter::InterpretNumOperator(root);
-    else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "print") return InterpretCommandPrint(root);
+    else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "print") return InterpretCommandPrint(root, false);
+    else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "println") return InterpretCommandPrint(root, true);
     else if (root.getData().getType() == Lexer::STRING) return InterpretString(root);
     else if (root.getData().getType() == Lexer::KEYWORD && root.getData().getDataStr() == "let") return InterpretCommandLet(root);
     else if (root.getData().getType() == Lexer::IDENTIFIER) return InterpretIdentifier(root);

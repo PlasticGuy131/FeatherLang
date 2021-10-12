@@ -12,6 +12,9 @@ void Lexer::Setup()
 	data.push_back(ANY);
 	Token::Keywords.emplace("print", data);
 	data.clear();
+	data.push_back(ANY);
+	Token::Keywords.emplace("println", data);
+	data.clear();
 	data.push_back(TYPE);
 	Token::Keywords.emplace("let", data);
 	data.clear();
@@ -254,7 +257,15 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 		}
 		else if (program[pointer] == '/')
 		{
-			tokens.add(Token(DIV));
+			if(program[pointer+1] == '/')
+			{
+				tokens.add(Token(IDIV));
+				pointer++;
+			}
+			else
+			{
+				tokens.add(Token(DIV));
+			}
 		}
 		else if (program[pointer] == '=')
 		{
@@ -291,6 +302,10 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 		else if (program[pointer] == ':')
 		{
 			tokens.add(Token(DEFAULT));
+		}
+		else if (program[pointer] == '%')
+		{
+			tokens.add(Token(MOD));
 		}
 		else if (program[pointer] == '>')
 		{

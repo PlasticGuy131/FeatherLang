@@ -272,7 +272,7 @@ std::vector<Parser::SyntaxNode*> Parser::JoinKeywords(std::vector<Parser::Syntax
 {
     for (size_t i = start; i < nodes.size() - end; i++)
 	{
-		if (nodes[i]->getData().getType() == Lexer::KEYWORD && nodes[i]->getData().getDataStr() == "print")
+		if (nodes[i]->getData().getType() == Lexer::KEYWORD && (nodes[i]->getData().getDataStr() == "print" || nodes[i]->getData().getDataStr() == "println"))
 		{
 			if (i == nodes.size()-1)
 			{
@@ -473,6 +473,10 @@ std::vector<Parser::SyntaxNode*> Parser::JoinAll(std::vector<Parser::SyntaxNode*
 		nodes = JoinNodesArithmetic(nodes, Lexer::ADD, start, end);
 
 		nodes = JoinNodesArithmetic(nodes, Lexer::SUB, start, end);
+
+		nodes = JoinNodesArithmetic(nodes, Lexer::IDIV, start, end);
+
+		nodes = JoinNodesArithmetic(nodes, Lexer::MOD, start, end);
 	}
 
 	nodes = JoinNodesCompair(nodes, Lexer::EQUAL, start, end);
