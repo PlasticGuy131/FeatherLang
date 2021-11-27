@@ -353,11 +353,16 @@ Interpreter::ReturnType Interpreter::InterpretCompOperator(Parser::SyntaxNode op
 			int val = op.getData().getDataNumerical<int>();
             return Interpreter::ReturnType(INT, val);
 		}
-		else
+		else if (op.getData().getType() == Lexer::FLOAT)
 		{
 			float val = op.getData().getDataNumerical<float>();
             return Interpreter::ReturnType(FLOAT, val);
 		}
+        else if (op.getData().getType() == Lexer::BOOL)
+        {
+            bool val = op.getData().getDataBool();
+            return Interpreter::ReturnType(BOOL, val);
+        }
 	}
 	else
 	{

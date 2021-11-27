@@ -6,6 +6,7 @@
 
 #include "Compiler.h"
 #include "../Interpreter/Interpreter.h"
+#include "../Error/Error.h"
 
 Compiler::Variable* Compiler::VariableHolder::Find(std::string name)
 {
@@ -84,26 +85,39 @@ void Compiler::Compile(Parser::SyntaxNode node)
 
 void Compiler::CompileAssign(Parser::SyntaxNode node)
 {
-    //if (IsLiteralTree(node.getChild(1), true))
-    if (false)
+    DataType type = programVariables.Find(node.getChild(0)->getData().getDataStr())->getType();
+    if (IsLiteralTree(node.getChild(1), true))
     {
-        Interpreter::ReturnType interpreted = Interpreter::InterpretNumOperator(*node.getChild(1));
-        main += "\tmov\teax, ";
-        if(interpreted.getType() == Interpreter::FLOAT)
+        if(type == INT)
         {
-            float newVal = interpreted.getData().f;
-            main += std::to_string(newVal);
+            Interpreter::ReturnType interpreted = Interpreter::InterpretNumOperator(*node.getChild(1));
+            main += "\tmov\teax, ";
+            if(interpreted.getType() == Interpreter::FLOAT)
+            {
+                float newVal = interpreted.getData().f;
+                main += std::to_string(newVal);
+            }
+            else
+            {
+                int newVal = interpreted.getData().i;
+                main += std::to_string(newVal);
+            }
+            main += "\n\tpush\teax\n";
         }
-        else
+        else if (type == BOOL)
         {
-            int newVal = interpreted.getData().i;
-            main += std::to_string(newVal);
+            main += "\tmov\teax, ";
+            bool val = Interpreter::InterpretCompOperator(*node.getChild(1)).getData().b;
+            if(val) main += "1";
+            else main += "0";
+            main += "\n\tpush\teax\n";
         }
-        main += "\tpush\teax\n";
     }
     else
     {
-        CompileMath(*node.getChild(1), 0);
+        DataType type = programVariables.Find(node.getChild(0)->getData().getDataStr())->getType();
+        if(type == INT) CompileIntMath(*node.getChild(1), 0);
+        else if(type == BOOL) CompileBoolLogic(*node.getChild(1), 0); 
     }
     main += "\tpop\teax\n\tmov\t[esp+";
     int depth = programVariables.getDepth(node.getChild(0)->getData().getDataStr());
@@ -112,7 +126,7 @@ void Compiler::CompileAssign(Parser::SyntaxNode node)
     main += "], eax\n";
 }
 
-int Compiler::CompileMath(Parser::SyntaxNode node, int unfinishedPushes)
+int Compiler::CompileIntMath(Parser::SyntaxNode node, int unfinishedPushes)
 {
     if (node.getData().getType() == Lexer::IDENTIFIER)
     {
@@ -137,8 +151,8 @@ int Compiler::CompileMath(Parser::SyntaxNode node, int unfinishedPushes)
         }
         else
         {
-            unfinishedPushes = CompileMath(*node.getChild(0), unfinishedPushes);
-            unfinishedPushes = CompileMath(*node.getChild(1), unfinishedPushes);
+            unfinishedPushes = CompileIntMath(*node.getChild(0), unfinishedPushes);
+            unfinishedPushes = CompileIntMath(*node.getChild(1), unfinishedPushes);
             if(node.getData().getType() == Lexer::ADD)
             {
                 main += "\tpop\tebx\n\tpop\teax\n\tadd\teax, ebx\npush\teax\n";
@@ -173,6 +187,65 @@ int Compiler::CompileMath(Parser::SyntaxNode node, int unfinishedPushes)
     }
 }
 
+int Compiler::CompileBoolLogic(Parser::SyntaxNode node, int unfinishedPushes)
+{
+    if (node.getData().getType() == Lexer::IDENTIFIER)
+    {
+        main += "\tpush\tdword [esp+";
+        int depth = programVariables.getDepth(node.getData().getDataStr()) + unfinishedPushes;
+        depth *= 4;
+        main += std::to_string(depth);
+        main += "]\n";
+        unfinishedPushes++;
+        return unfinishedPushes;
+    }
+    else
+    {
+        if (node.childrenCount() == 0)
+        {
+            int number = Interpreter::InterpretNumOperator(node).getData().i;
+            main += "\tpush\t";
+            main += std::to_string(number);
+            main += "\n";
+            unfinishedPushes++;
+            return unfinishedPushes;
+        }
+        else
+        {
+            if(node.getData().getType() == Lexer::ADD || node.getData().getType() == Lexer::SUB || node.getData().getType() == Lexer::MULT || node.getData().getType() == Lexer::IDIV || node.getData().getType() == Lexer::MOD)
+            {
+                unfinishedPushes = CompileIntMath(node, unfinishedPushes);
+                return unfinishedPushes;
+            }
+            else
+            {
+                unfinishedPushes = CompileBoolLogic(*node.getChild(0), unfinishedPushes);
+                unfinishedPushes = CompileBoolLogic(*node.getChild(1), unfinishedPushes);
+                std::string countStr = std::to_string(compCount);
+                std::string jump = "j";
+                if(node.getData().getType() == Lexer::EQUAL) jump += "e";
+                else if(node.getData().getType() == Lexer::GREATER) jump += "g";
+                else if(node.getData().getType() == Lexer::GREATERE) jump += "ge";
+                else if(node.getData().getType() == Lexer::LESS) jump += "l";
+                else if(node.getData().getType() == Lexer::LESSE) jump += "le";
+                main += "\tpop\tebx\n\tpop\teax\n\tcmp\teax, ebx\n\t";
+                main += jump;
+                main += "\tc";
+                main += countStr;
+                main += "\n\tpush\t0\n\tjmp\te";
+                main += countStr;
+                main += "\nc";
+                main += countStr;
+                main += ":\n\tpush\t1\ne";
+                main += countStr;
+                main += ":\n";
+                unfinishedPushes -= 2;
+                return unfinishedPushes;
+            }
+        }
+    }
+}
+
 void Compiler::CompileVariableInit(Parser::SyntaxNode node)
 {
     DataType type = NULLTYPE;
@@ -181,23 +254,17 @@ void Compiler::CompileVariableInit(Parser::SyntaxNode node)
     //if(node.getChild(0)->getData().getDataStr() == "string") type = STRING;
     if(node.getChild(0)->getData().getDataStr() == "bool") type = BOOL;
     programVariables.Add(Variable(node.getChild(0)->getChild(0)->getData().getDataStr(), type));
+    main += "\tpush\t0\n";
 
-    std::string defaultValue = "";
     if(node.childrenCount() > 1)
     {
-        if(type == INT) defaultValue = std::to_string(node.getChild(2)->getData().getDataNumerical<int>());
-        else if(type == FLOAT) defaultValue = std::to_string(node.getChild(2)->getData().getDataNumerical<float>());
-        else if(type == BOOL) defaultValue = std::to_string(node.getChild(2)->getData().getDataBool());
+        Parser::SyntaxNode assign = Parser::SyntaxNode(Lexer::Token(Lexer::ASSIGN));
+        Parser::SyntaxNode id = *node.getChild(0)->getChild(0);
+        Parser::SyntaxNode val = *node.getChild(2);
+        assign.addChild(&id);
+        assign.addChild(&val);
+        CompileAssign(assign);
     }
-    else
-    {
-        if(type == INT || type == BOOL) defaultValue = "0";
-        else if(type == FLOAT) defaultValue = "0.0";
-    }
-    
-    main += "\tpush\t";
-    main += defaultValue;
-    main += "\n";
 }
 
 void Compiler::CompileInput(std::string prompt)
@@ -220,7 +287,7 @@ void Compiler::CompileInput(std::string prompt)
 bool Compiler::IsLiteral(Parser::SyntaxNode node)
 {
     Lexer::TokenType type = node.getData().getType();
-    return (type == Lexer::STRING ||  node.getData().isNumber() || type == Lexer::BOOL);
+    return (type == Lexer::STRING ||  node.isNumber() || type == Lexer::BOOL || node.isComp());
 }
 bool Compiler::IsLiteralTree(Parser::SyntaxNode* node, bool rest)
 {
@@ -260,9 +327,12 @@ void Compiler::CompilePrint(Parser::SyntaxNode node, bool newLine)
     } 
     bool literal = IsLiteralTree(node.getChild(0), true);
     
+    Lexer::TokenType printType = node.getChild(0)->getData().getType();
+
+    
+
     if(literal)
-    {
-        Lexer::TokenType printType = node.getChild(0)->getData().getType();
+    {        
         std::string message = "";
         if(printType == Lexer::STRING) message = node.getChild(0)->getData().getDataStr();
         else if(printType == Lexer::INT) message = std::to_string(node.getChild(0)->getData().getDataNumerical<int>());
@@ -270,6 +340,11 @@ void Compiler::CompilePrint(Parser::SyntaxNode node, bool newLine)
         {
             message = std::to_string(node.getChild(0)->getData().getDataNumerical<float>());
             message = ShortenFloat(message);
+        }
+        else if(printType == Lexer::BOOL)
+        {
+            if(node.getChild(0)->getData().getDataBool()) message = "true";
+            else message = "false";
         }
         else if(node.getChild(0)->isNumber())
         {
@@ -280,6 +355,12 @@ void Compiler::CompilePrint(Parser::SyntaxNode node, bool newLine)
                 message = ShortenFloat(message);
             }
             else message = std::to_string(interpreted.getData().i);
+        }
+        else if(node.getChild(0)->isComp())
+        {
+            bool val = Interpreter::InterpretCompOperator(*node.getChild(0)).getData().b;
+            if(val) message = "true";
+            else message = "false";
         }
 
         main += "\tpush\t-11\n\tcall\tGetStdHandle\n\tmov\tebx, eax\n\tpush\t0\n\tlea\teax, [ebp-4]\n\tpush\teax\n\tpush\t";
@@ -296,17 +377,31 @@ void Compiler::CompilePrint(Parser::SyntaxNode node, bool newLine)
     else
     {
         main += "\tpush\t-11\n\tcall\tGetStdHandle\n\tmov\tebx, eax\n";
-        Lexer::TokenType printType = node.getChild(0)->getData().getType();
         if(printType == Lexer::KEYWORD && node.getChild(0)->getData().getDataStr() == "input") main += "\tmov\tedx, __i\n\tmov\tecx, [__iLen]\n\tsub\tecx, 1\n";
         else if(printType == Lexer::IDENTIFIER)
         {
             main += "\tmov\tecx, [esp+";
             int depth = programVariables.getDepth(node.getChild(0)->getData().getDataStr());
             depth *= 4;
-            std::string countStr = std::to_string(intToStringCount);
             main += std::to_string(depth);
             main += "]\n";
-            StringToInt();
+            DataType varType = programVariables.Find(node.getChild(0)->getData().getDataStr())->getType();
+            if(varType == INT) IntToString();
+            else if(varType == BOOL) BoolToString();
+        }
+        else if(node.getChild(0)->isNumber())
+        {
+            main += "\tpush\tebx\n";
+            CompileIntMath(*node.getChild(0), 1);
+            main += "\tpop\tecx\n\tpop\tebx\n";
+            IntToString();
+        }
+        else if(node.getChild(0)->isComp())
+        {
+            main += "\tpush\tebx\n";
+            CompileBoolLogic(*node.getChild(0), 1);
+            main += "\tpop\tecx\n\tpop\tebx\n";
+            BoolToString();
         }
         main += "\tpush\t0\n\tlea\teax, [ebp-4]\n\tpush\teax\n\tpush\tecx\n\tpush\tedx\n\tpush\tebx\n\tcall\tWriteFile\n";
         if (newLine) main += newLinePrint;
@@ -314,7 +409,7 @@ void Compiler::CompilePrint(Parser::SyntaxNode node, bool newLine)
     valId++;
 }
 
-std::string Compiler::StringToInt()
+std::string Compiler::IntToString()
 {
     std::string countStr = std::to_string(intToStringCount);
     main += "\tpush\tebx\n\tcmp\tecx, 0\n\tjge\titsp";
@@ -344,4 +439,19 @@ std::string Compiler::StringToInt()
     main += countStr;
     main += "\n\n\t\tpop\tecx\n\tpop\tebx\n\tmov\tedx, __o\n";
     intToStringCount++;
+}
+
+std::string Compiler::BoolToString()
+{
+    std::string countStr = std::to_string(boolToStringCount);
+    main += "\tcmp\tecx, 1\n\tje\tbtst";
+    main += countStr;
+    main += "\n\tmov\t[__o], word 'f'\n\tmov\t[__o+1], word 'a'\n\tmov\t[__o+2], word 'l'\n\tmov\t[__o+3], word 's'\n\tmov\t[__o+4], word 'e'\n\tmov\tecx, 5\n\tjmp\tbtse";
+    main += countStr;
+    main += "\nbtst";
+    main += countStr;
+    main += ":\n\tmov\t[__o], word 't'\n\tmov\t[__o+1], word 'r'\n\tmov\t[__o+2], word 'u'\n\tmov\t[__o+3], word 'e'\n\tmov\tecx, 4\nbtse";
+    main += countStr;
+    main += ":\n\tmov\tedx, __o\n";
+    boolToStringCount++;
 }

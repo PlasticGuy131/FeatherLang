@@ -57,10 +57,12 @@ void Error::TypeError(Interpreter::returnT shouldBe, Interpreter::returnT type)
 	if(type == Interpreter::INT) out += "int";
 	else if(type == Interpreter::FLOAT) out += "float";
 	else if(type == Interpreter::STRING) out += "string";
+	else if(type == Interpreter::BOOL) out += "bool";
 	out += " to type: ";
 	if(shouldBe == Interpreter::INT) out += "int";
 	else if(shouldBe == Interpreter::FLOAT) out += "float";
 	else if(shouldBe == Interpreter::STRING) out += "string";
+	else if(type == Interpreter::BOOL) out += "bool";
 	out += "!";
 	std::cout << out << std::endl;
 	exit(EXIT_FAILURE);

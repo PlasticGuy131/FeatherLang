@@ -98,12 +98,12 @@ int main(int argc, char** argv)
 	}
 	else if (std::strcmp(argv[1], "help") == 0)
 	{
-		std::cout << "ALL ARGUEMENTS:\nrun [file name] - to run a file\ngit - to get the link to the github\nhelp - for help" << std::endl;
+		std::cout << "ALL ARGUEMENTS:\nrun [file name] - to run a file\ngit - to get the link to the github\ncompile [file name] - to compile a file\nhelp - for help" << std::endl;
 		exit(1);
 	}
 	else
 	{
-		std::cout << "UNRECOGNISED ARGUMENT " << argv[1] << " PLEASE USE:\nrun [file name] - to run a file\ngit - to get the link to the github\nhelp - for help" << std::endl;
+		std::cout << "UNRECOGNISED ARGUMENT " << argv[1] << " PLEASE USE: feather help" << std::endl;
 		exit(1);
 	}
 }

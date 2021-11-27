@@ -20,7 +20,9 @@ namespace Compiler
 
     const static std::string newLinePrint = "\tpush\t-11\n\tcall\tGetStdHandle\n\tmov\tebx, eax\n\tmov\tecx, 1\n\tmov\tedx, 10\n\tmov\t[__o], edx\n\tmov\tedx, __o\n\tpush\t0\n\tlea\teax, [ebp-4]\n\tpush\teax\n\tpush\tecx\n\tpush\tedx\n\tpush\tebx\n\tcall\tWriteFile\n";
 
-    int CompileMath(Parser::SyntaxNode node, int unfinishedPushes);
+    int CompileIntMath(Parser::SyntaxNode node, int unfinishedPushes);
+
+    int CompileBoolLogic(Parser::SyntaxNode node, int unfinishedPushes);
 
     void CompileInput(std::string prompt);
 
@@ -89,6 +91,9 @@ namespace Compiler
 
     static VariableHolder programVariables = VariableHolder();
     static int intToStringCount = 0;
+    static int boolToStringCount = 0;
+    static int compCount = 0;
 
-    std::string StringToInt();
+    std::string IntToString();
+    std::string BoolToString();
 }

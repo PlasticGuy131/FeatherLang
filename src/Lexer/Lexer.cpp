@@ -170,7 +170,7 @@ std::string Lexer::TokenList::ToString()
 
 bool Lexer::Token::isNumber()
 {
-	return (type == INT || type == FLOAT || type == ADD || type == MULT || type == SUB || type == DIV || type == POW);
+	return (type == INT || type == FLOAT || type == ADD || type == MULT || type == SUB || type == DIV || type == POW || type == MOD || type == IDIV);
 }
 
 bool Lexer::Token::isComp()
@@ -184,14 +184,14 @@ Lexer::TokenList Lexer::MakeTokens(std::string program)
 
 	for (size_t pointer = 0; pointer < program.length(); pointer++)
 	{
-		if (isdigit(program[pointer]))
+		if (isdigit(program[pointer]) || program[pointer] == '-')
 		{
 			std::string num = "";
 			bool point = false;
 
 			while (pointer < program.length())
 			{
-				if (isdigit(program[pointer]) || program[pointer] == '.')
+				if (isdigit(program[pointer]) || program[pointer] == '.' || program[pointer] == '-')
 				{
 					if (program[pointer] == '.')
 					{
